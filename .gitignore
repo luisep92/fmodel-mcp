@@ -1,0 +1,34 @@
+# .NET build outputs
+Cli/bin/
+Cli/obj/
+*.user
+*.suo
+
+# Oodle compression library: redistribution forbidden by RAD Game Tools.
+# `EnsureOodle()` downloads it on first run from the OodleUE GitHub release.
+oodle-data-shared.dll
+liboodle-data-shared.so
+oo2core_*.dll
+liboo2corelinux64.so*
+
+# Python
+Server/__pycache__/
+Server/.venv/
+Server/*.egg-info/
+Server/dist/
+Server/build/
+**/__pycache__/
+*.pyc
+
+# uv lockfile is fine to commit
+# uv.lock
+
+# Local secrets / paths
+*.local.json
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Mappings file is binary and game-version-specific; keep out of git
+mappings/*.usmap
