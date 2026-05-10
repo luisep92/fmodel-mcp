@@ -5,18 +5,18 @@ Thin Python MCP server. Spawns `dotnet exec ../Cli/bin/Debug/net9.0/fmodel-cli.d
 ## Run standalone (for debugging)
 
 ```pwsh
-cd d:\vivify_repo\fmodel-mcp\Server
+cd <repo>/Server
 uv run python src/server.py
 ```
 
-This starts a stdio MCP server. To wire into Claude Code, add to your MCP config:
+This starts a stdio MCP server. To wire into Claude Code, add to your MCP config (use the absolute path to your local checkout):
 
 ```json
 {
   "mcpServers": {
     "fmodel": {
       "command": "uv",
-      "args": ["run", "--project", "d:/vivify_repo/fmodel-mcp/Server", "python", "src/server.py"]
+      "args": ["run", "--project", "<absolute-path-to>/fmodel-mcp/Server", "python", "src/server.py"]
     }
   }
 }

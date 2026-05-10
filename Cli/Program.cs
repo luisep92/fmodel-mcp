@@ -445,7 +445,9 @@ internal sealed record Config(
 {
     public static Config Load()
     {
-        // 1) FMODEL_MCP_CONFIG env var  2) ./config.json next to the CLI  3) hardcoded E33 defaults.
+        // 1) FMODEL_MCP_CONFIG env var  2) ./config.json next to the CLI  3) placeholder fallback.
+        // The fallback values are intentionally fake — running without a config will surface
+        // a "paks dir not found" error pointing the user at config.json.example.
         var envPath = Environment.GetEnvironmentVariable("FMODEL_MCP_CONFIG");
         var localPath = Path.Combine(AppContext.BaseDirectory, "config.json");
         var repoPath = Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "config.json");
@@ -459,10 +461,10 @@ internal sealed record Config(
         }
 
         return new Config(
-            PaksDir: @"D:\SteamLibrary\steamapps\common\Expedition 33\Sandfall\Content\Paks",
-            OutputDir: @"D:\vivify_repo\Output\Exports",
+            PaksDir: @"<EDIT-ME: path to your game's Content\Paks>",
+            OutputDir: @"<EDIT-ME: path to your output directory>",
             UeVersion: "GAME_UE5_4",
-            MappingsFile: @"D:\vivify_repo\fmodel-mcp\mappings\Expedition33Mappings-1.5.4.usmap",
+            MappingsFile: @"<EDIT-ME: path to your .usmap file, or null>",
             AesKey: null
         );
     }

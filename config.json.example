@@ -1,0 +1,8 @@
+{
+  "_comment": "Copy this to config.json next to the fmodel-cli binary, or set FMODEL_MCP_CONFIG to its absolute path. Values below are an example targeting Expedition 33 (the game this CLI was originally built for) — edit for your title.",
+  "PaksDir": "D:\\SteamLibrary\\steamapps\\common\\Expedition 33\\Sandfall\\Content\\Paks",
+  "OutputDir": "D:\\vivify_repo\\Output\\Exports",
+  "UeVersion": "GAME_UE5_4",
+  "MappingsFile": "D:\\vivify_repo\\fmodel-mcp\\mappings\\Expedition33Mappings-1.5.4.usmap",
+  "AesKey": null
+}

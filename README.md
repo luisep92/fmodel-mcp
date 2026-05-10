@@ -6,7 +6,7 @@ Minimal MCP server for inspecting and exporting Unreal Engine assets via [CUE4Pa
 
 ## Why
 
-Working with assets ripped from a UE game (here: *Expedition 33*) inside another engine (here: Unity 2019.4 + Vivify for Beat Saber) means a lot of "open FModel, navigate, export, copy to project". The fricción is the same fricción that motivated wrapping the Unity Editor in [unity-mcp](https://github.com/justinpbarnett/unity-mcp). Same answer: ship a tool that the assistant can drive directly.
+Working with assets ripped from a UE game (here: *Expedition 33*) inside another engine (here: Unity 2019.4 + Vivify for Beat Saber) means a lot of "open FModel, navigate, export, copy to project". The friction is the same friction that motivated wrapping the Unity Editor in [unity-mcp](https://github.com/CoplayDev/unity-mcp). Same answer: ship a tool that the assistant can drive directly.
 
 ## Architecture
 
@@ -39,15 +39,15 @@ Two layers by design:
 
 ## Project conventions
 
-- Output dir: `D:\vivify_repo\Output\Exports\` (same as FModel GUI). Treat it as scratch.
-- Curated subset that ends up in the actual project: `D:\vivify_repo\my_vivify_template\Sandfall\...` (move-by-hand or via a future `promote` tool).
+- Output dir is configured in `config.json` (see Setup below) and is treated as scratch — same role FModel's `Output/Exports/` plays.
+- The "promote curated subset to the real project" step is intentionally out of scope here; the tool exports, you copy what you keep.
 
 ## Setup
 
 ### Build the CLI
 
 ```pwsh
-cd d:\vivify_repo\fmodel-mcp\Cli
+cd <repo>/Cli
 dotnet publish -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -o bin/publish
 ```
 
@@ -55,24 +55,32 @@ This produces a single `fmodel-cli.exe` (~90 MB, .NET runtime embedded). The fir
 
 ### Configure for your game
 
-Edit the defaults in `Cli/Program.cs` (`Config.Load`) — game pak directory, UE version, mappings path, output directory — or drop a `config.json` next to the .exe. The current defaults target an *Expedition 33* install on this machine.
+Copy `config.json.example` to `config.json` next to the .exe (or anywhere, then point `FMODEL_MCP_CONFIG` at it) and edit the paths for your title. The example values target *Expedition 33* — the game this CLI was originally built for — as a working reference.
+
+Config keys:
+
+- `PaksDir`: directory containing `*.pak` / `*.utoc` / `*.ucas` for your game.
+- `OutputDir`: where exports land.
+- `UeVersion`: CUE4Parse version enum (e.g. `GAME_UE5_4`).
+- `MappingsFile`: path to a `.usmap` file (some games need it; nullable).
+- `AesKey`: encryption key as a hex string (most games don't need it; nullable).
 
 ### Install the MCP server
 
 ```pwsh
-cd d:\vivify_repo\fmodel-mcp\Server
+cd <repo>/Server
 uv sync
 ```
 
 ### Wire into Claude Code
 
-Add to `~/.claude.json` under `mcpServers`:
+Add to `~/.claude.json` under `mcpServers` (use the absolute path to your local checkout):
 
 ```json
 "fmodel": {
   "type": "stdio",
   "command": "uv",
-  "args": ["run", "--directory", "d:/vivify_repo/fmodel-mcp/Server", "python", "src/server.py"]
+  "args": ["run", "--directory", "<absolute-path-to>/fmodel-mcp/Server", "python", "src/server.py"]
 }
 ```
 
@@ -80,4 +88,4 @@ Restart Claude Code; the `mcp__fmodel__*` tools should appear.
 
 ## Status
 
-Built initially for *Expedition 33* (UE 5.4, no AES). Not generalized to other titles yet — game-specific defaults live in one method (`Config.Load` in `Program.cs`) and could be moved to a config file when a second game shows up.
+Built initially for *Expedition 33* (UE 5.4, no AES) — those values ship in `config.json.example`. Not generalized to other titles yet: the package-path normalizer in `Program.cs` hardcodes E33's `Sandfall/Content` mount point, so a second game with a different mount point would need that helper made configurable.

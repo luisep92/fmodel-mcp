@@ -92,7 +92,7 @@ def fmodel_search(pattern: str, limit: int = 200) -> dict[str, Any]:
     """Find packages by glob or substring.
 
     Pattern is a glob over package paths (e.g. `**/MI_Curator*`,
-    `Sandfall/Content/Characters/**/Aline/**/*`). `*` matches a single path
+    `Game/Content/Characters/**/MyCharacter/**/*`). `*` matches a single path
     component, `**` matches any number of components.
     """
     return _run(["search", pattern, str(limit)])
@@ -138,7 +138,7 @@ def fmodel_export_raw(path: str) -> dict[str, Any]:
 @mcp.tool
 def fmodel_list_exports(prefix: str = "") -> dict[str, Any]:
     """List files already on disk under Output/Exports/ matching an optional
-    prefix (e.g. `Sandfall/Content/Characters/Enemies/HumanEnnemies/Aline`)."""
+    prefix (e.g. `Game/Content/Characters/Enemies/MyEnemy`)."""
     return _run(["list", prefix])
 
 
