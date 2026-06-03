@@ -21,7 +21,7 @@ fmodel-mcp/
 
 Two layers by design:
 
-- **Cli/** is the only thing that links to CUE4Parse. It exposes subcommands (`status`, `search`, `read`, `inspect`, `export-tex`, `export-mesh`, `export-raw`, `list`) that print JSON to stdout. Useful on its own for ad-hoc scripts.
+- **Cli/** is the only thing that links to CUE4Parse. It exposes subcommands (`status`, `search`, `read`, `inspect`, `export-tex`, `export-mesh`, `export-mesh-uf`, `export-anim`, `export-raw`, `list`) that print JSON to stdout. Useful on its own for ad-hoc scripts.
 - **Server/** is a thin Python MCP server that invokes the CLI as subprocess and exposes its functionality as MCP tools. Cheap to evolve independently of CUE4Parse.
 
 ## Tools (Tier 1)
@@ -33,7 +33,9 @@ Two layers by design:
 | `fmodel_read(path)` | Returns the package JSON without exporting |
 | `fmodel_inspect_material(path)` | Shortcut: only Textures + Scalars + Vectors + Parent + BlendMode |
 | `fmodel_export_texture(path)` | PNG/TGA to `Output/Exports/...` |
-| `fmodel_export_mesh(path)` | PSK/PSKX/FBX to `Output/Exports/...` |
+| `fmodel_export_mesh(path)` | SkeletalMesh/StaticMesh as ActorX `.psk`/`.pskx` to `Output/Exports/...` |
+| `fmodel_export_mesh_uf(path)` | SkeletalMesh/StaticMesh as `.uemodel` (UEFormat) — bind matches `.ueanim` from `fmodel_export_anim` |
+| `fmodel_export_anim(path)` | AnimSequence/AnimMontage as `.ueanim` (UEFormat, keeps bone scale) to `Output/Exports/...` |
 | `fmodel_export_raw(path)` | Full JSON dump (the kind material instance JSONs end up as) |
 | `fmodel_list_exports(prefix)` | List what is already exported |
 

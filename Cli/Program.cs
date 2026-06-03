@@ -34,7 +34,7 @@ internal static class Program
         {
             _cfg = Config.Load();
 
-            if (args.Length == 0) return Emit(new { ok = false, error = "no subcommand. expected: status|search|read|inspect|export-tex|export-mesh|export-raw|list" }, exit: 2);
+            if (args.Length == 0) return Emit(new { ok = false, error = "no subcommand. expected: status|search|read|inspect|export-tex|export-mesh|export-anim|export-raw|list" }, exit: 2);
 
             var cmd = args[0];
             var rest = args[1..];
@@ -52,6 +52,8 @@ internal static class Program
                 "inspect" => CmdInspect(rest),
                 "export-tex" => CmdExportTexture(rest),
                 "export-mesh" => CmdExportMesh(rest),
+                "export-mesh-uf" => CmdExportMeshUF(rest),
+                "export-anim" => CmdExportAnim(rest),
                 "export-raw" => CmdExportRaw(rest),
                 _ => Emit(new { ok = false, error = $"unknown subcommand: {cmd}" }, exit: 2),
             };
@@ -320,6 +322,69 @@ internal static class Program
 
         if (!exporter.TryWriteToDir(new DirectoryInfo(outDir), out var label, out var savedPath))
             throw new Exception("mesh exporter wrote nothing");
+
+        return Emit(new { ok = true, path, outputPath = savedPath, label });
+    }
+
+    private static int CmdExportMeshUF(string[] args)
+    {
+        if (args.Length < 1) return Emit(new { ok = false, error = "export-mesh-uf: missing path" }, exit: 2);
+        var path = NormalizePath(args[0]);
+
+        var mesh = _provider.LoadPackage(path).GetExports()
+            .FirstOrDefault(o => o.GetType().Name.Contains("SkeletalMesh") || o.GetType().Name.Contains("StaticMesh"))
+            ?? throw new Exception("no SkeletalMesh / StaticMesh export found in package");
+
+        // UEFormat .uemodel: same family as the .ueanim export. Exporting mesh and
+        // animation through the SAME format guarantees a consistent bind pose when
+        // both are imported with the UEFormat Blender addon — avoids the rest-pose
+        // mismatch that the PSK->Blender->FBX path can introduce.
+        var options = new ExporterOptions
+        {
+            MeshFormat = EMeshFormat.UEFormat,
+            AnimFormat = CUE4Parse_Conversion.Animations.EAnimFormat.UEFormat,
+            TextureFormat = ETextureFormat.Png,
+            ExportMorphTargets = false,
+        };
+        var exporter = new Exporter(mesh, options);
+        var outDir = Path.GetDirectoryName(ResolveOutputPath(path, ".uemodel"))!;
+        Directory.CreateDirectory(outDir);
+
+        if (!exporter.TryWriteToDir(new DirectoryInfo(outDir), out var label, out var savedPath))
+            throw new Exception("uemodel exporter wrote nothing");
+
+        return Emit(new { ok = true, path, outputPath = savedPath, label });
+    }
+
+    private static int CmdExportAnim(string[] args)
+    {
+        if (args.Length < 1) return Emit(new { ok = false, error = "export-anim: missing path" }, exit: 2);
+        var path = NormalizePath(args[0]);
+
+        var anim = _provider.LoadPackage(path).GetExports()
+            .FirstOrDefault(o => o.GetType().Name.Contains("AnimSequence") || o.GetType().Name.Contains("AnimMontage"))
+            ?? throw new Exception("no AnimSequence / AnimMontage export found in package");
+
+        // UEFormat (.ueanim) over ActorX (.psa): the ActorX exporter drops per-bone
+        // SCALE tracks (the DarklightGames Blender PSA importer logs "Unrecognized
+        // section SCALEKEYS" and discards them). Characters animated with bone-scale
+        // (e.g. the giant Paintress, whose looming form is partly baked as scale)
+        // come out torn without it. UEFormat carries translation+rotation+scale, and
+        // the UEFormat Blender importer reads all three. The Exporter(UObject, options)
+        // ctor dispatches by runtime type: a UAnimSequence routes to the anim exporter.
+        var options = new ExporterOptions
+        {
+            MeshFormat = EMeshFormat.ActorX,
+            AnimFormat = CUE4Parse_Conversion.Animations.EAnimFormat.UEFormat,
+            TextureFormat = ETextureFormat.Png,
+            ExportMorphTargets = false,
+        };
+        var exporter = new Exporter(anim, options);
+        var outDir = Path.GetDirectoryName(ResolveOutputPath(path, ".ueanim"))!;
+        Directory.CreateDirectory(outDir);
+
+        if (!exporter.TryWriteToDir(new DirectoryInfo(outDir), out var label, out var savedPath))
+            throw new Exception("anim exporter wrote nothing");
 
         return Emit(new { ok = true, path, outputPath = savedPath, label });
     }

@@ -128,6 +128,33 @@ def fmodel_export_mesh(path: str) -> dict[str, Any]:
 
 
 @mcp.tool
+def fmodel_export_mesh_uf(path: str) -> dict[str, Any]:
+    """Export a SkeletalMesh / StaticMesh as a .uemodel (UEFormat) under Output/Exports/.
+
+    UEFormat counterpart of fmodel_export_mesh (which writes ActorX .psk). Use this
+    when you need the mesh bind pose to match a .ueanim exported via
+    fmodel_export_anim: importing both with the UEFormat Blender addon guarantees a
+    consistent reference skeleton (the PSK->FBX path can drift). Import via the
+    addon's logic call (the bpy.ops.uf.import_uemodel operator silently no-ops in
+    headless/MCP context; call io_scene_ueformat.importer.logic.UEFormatImport(
+    UEModelOptions(...)).import_file(path) directly)."""
+    return _run(["export-mesh-uf", path])
+
+
+@mcp.tool
+def fmodel_export_anim(path: str) -> dict[str, Any]:
+    """Export an AnimSequence / AnimMontage as a .ueanim (UEFormat) under Output/Exports/.
+
+    UEFormat carries translation+rotation+SCALE per bone. ActorX (.psa) drops
+    the per-bone scale tracks (the Blender PSA importer logs "Unrecognized
+    section SCALEKEYS"), which tears characters that animate bone-scale (e.g.
+    the giant Paintress). Import the .ueanim with the UEFormat Blender addon.
+    Mesh + skeleton come from fmodel_export_mesh; this is the animation
+    counterpart."""
+    return _run(["export-anim", path])
+
+
+@mcp.tool
 def fmodel_export_raw(path: str) -> dict[str, Any]:
     """Dump the full FModel-style JSON for the package (all UObjects, all
     properties) to Output/Exports/ as a .json file. Use for blueprints,
